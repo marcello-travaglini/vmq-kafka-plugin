@@ -1,0 +1,81 @@
+%%--------------------------------------------------------------------
+%% vmq_kafka_plugin.app.src
+%%
+%% This is the Erlang application resource file for the vmq_kafka_plugin.
+%% It defines metadata, dependencies, environment variables, and hooks
+%% for the VerneMQ Kafka bridge plugin.
+%%
+%% The .app file is used by the Erlang/OTP runtime to start the application
+%% and by VerneMQ to register plugin hooks and configuration.
+%%--------------------------------------------------------------------
+
+{application, vmq_kafka_plugin, [
+
+    %% Short description of the application
+    {description, "VerneMQ Kafka Bridge"},
+
+    %% Version number of the plugin
+    {vsn, "0.1.0"},
+
+    %% List of globally registered process names (none in this case)
+    {registered, []},
+
+    %% The application callback module and its start arguments.
+    %% vmq_kafka_plugin_app:start/2 will be called when the app starts.
+    {mod, {vmq_kafka_plugin_app, []}},
+
+    %% Applications that must be started before this one.
+    %% - kernel: core Erlang runtime services
+    %% - stdlib: standard Erlang library
+    %% - brod: Kafka client library for Erlang
+    {applications, [
+        kernel,
+        stdlib,
+        brod
+    ]},
+
+    %% Environment variables for this application.
+    %% These can be overridden in advanced.config or vmq.conf.
+    {env, [
+
+        %% Whether the plugin is enabled via VerneMQ config
+        {vmq_config_enabled, true},
+
+        %% Kafka broker list: [{"host", port}, ...]
+        {brokers, []},
+
+        %% Default client options for brod:start_client/3
+        {client_opts, []},
+
+        %% Producer options for FAST clients (QoS 0)
+        {fast_opts, []},
+
+        %% Producer options for SAFE clients (QoS 1/2)
+        {safe_opts, []},
+
+        %% Number of Kafka worker processes to start (one per MQTT client)
+        {worker_count, 1},
+
+        %% MQTT→Kafka topic mappings.
+        %% Each element: {PatternBinary, KafkaTopicBinary}
+        %% Example: [{<<"sensors/#">>, <<"sensor-data">>}]
+        {mappings, []},
+
+        %% VerneMQ plugin hooks to register.
+        %% Format: {Module, Function, Arity, ExtraArgs}
+        %% Here: call vmq_kafka_plugin:on_publish/6 for every publish event.
+        {vmq_plugin_hooks,
+         [
+           {vmq_kafka_plugin, on_publish, 6, []}
+         ]}
+    ]},
+
+    %% List of modules included in this application (empty: discovered automatically)
+    {modules, []},
+
+    %% License(s) for this application
+    {licenses, ["Apache-2.0"]},
+
+    %% External links or references (none here)
+    {links, []}
+]}.
