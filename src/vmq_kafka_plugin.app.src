@@ -31,7 +31,8 @@
     {applications, [
         kernel,
         stdlib,
-        brod
+        brod,
+        snappyer
     ]},
 
     %% Environment variables for this application.
@@ -79,3 +80,4 @@
     %% External links or references (none here)
     {links, []}
 ]}.
+
