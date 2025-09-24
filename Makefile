@@ -48,8 +48,7 @@ dev:
 .PHONY: prod
 prod:
 	rebar3 clean --all
-	rebar3 as prod compile
-	rebar3 as prod release
+	rebar3 as prod tar
 
 #--------------------------------------------------------------------
 # Clean all build artifacts (both dev and prod)
@@ -77,3 +76,4 @@ deploy: prod
 undeploy:
 	vmq-admin plugin disable --name $(APP_NAME)
 	rm -rf $(VMQ_PLUGIN_DIR)/$(APP_NAME)-$(APP_VSN)
+
