@@ -259,7 +259,7 @@ ensure_dual_producers(ClientFast, ClientSafe, Topics, FastOpts, SafeOpts) ->
 %%   {error, Reason} for other errors
 %%--------------------------------------------------------------------
 start_producer(_ClientRef, _Topic, _ProdOpts, 0, _Delay) ->
-    io:format("Max retries exceeded, giving up.~n", []),
+    logger:error("Max retries exceeded, giving up.", []),
     {error, max_retries_exceeded};
 
 start_producer(ClientRef, Topic, ProdOpts, Retries, Delay) ->
