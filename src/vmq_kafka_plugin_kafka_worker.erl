@@ -286,7 +286,7 @@ ensure_topic_producers(ClientRef, Topics, ProdOpts) ->
       fun(Topic, Acc) ->
           case Acc of
               ok ->
-                  case start_producer(ClientRef, Topic, ProdOpts, 3, 5) of
+                  case start_producer(ClientRef, Topic, ProdOpts, 3, 5000) of
                       ok -> ok;
                       {error, {already_started, _}} -> ok;
                       {error, Reason} -> {error, {Topic, Reason}}
