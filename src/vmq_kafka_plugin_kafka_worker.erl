@@ -238,13 +238,55 @@ ensure_dual_producers(ClientFast, ClientSafe, Topics, FastOpts, SafeOpts) ->
     end,
     ensure_topic_producers(ClientSafe, Topics, SafeOpts).
 
+%%--------------------------------------------------------------------
+%% start_producer(ClientRef, Topic, ProdOpts, Retries, Delay)
+%%
+%% Tries to start a Kafka producer using brod. If the topic does not
+%% yet exist (auto-create in Kafka may take some time to propagate),
+%% it retries with exponential backoff until either success or the
+%% maximum number of retries is reached.
+%%
+%% Parameters:
+%%   ClientRef - brod client reference (atom or pid)
+%%   Topic     - Kafka topic name (binary or string)
+%%   ProdOpts  - Producer options for brod:start_producer/3
+%%   Retries   - Maximum number of retry attempts
+%%   Delay     - Initial delay in milliseconds before retry
+%%
+%% Returns:
+%%   {ok, Pid} on success
+%%   {error, max_retries_exceeded} if retries are exhausted
+%%   {error, Reason} for other errors
+%%--------------------------------------------------------------------
+start_producer(_ClientRef, _Topic, _ProdOpts, 0, _Delay) ->
+    io:format("Max retries exceeded, giving up.~n", []),
+    {error, max_retries_exceeded};
+
+start_producer(ClientRef, Topic, ProdOpts, Retries, Delay) ->
+    case brod:start_producer(ClientRef, Topic, ProdOpts) of
+        {ok, Pid} ->
+            io:format("Producer successfully started on topic ~p~n", [Topic]),
+            {ok, Pid};
+
+        {error, unknown_topic_or_partition} ->
+            io:format("Topic ~p not yet available, retrying in ~p ms (remaining retries: ~p)~n",
+                      [Topic, Delay, Retries]),
+            timer:sleep(Delay),
+            %% Exponential backoff: double the delay each retry
+            start_producer(ClientRef, Topic, ProdOpts, Retries - 1, Delay * 2);
+
+        {error, Reason} ->
+            io:format("Unhandled error while starting producer: ~p~n", [Reason]),
+            {error, Reason}
+    end.
+
 %% Start producers for a given client and topic list
 ensure_topic_producers(ClientRef, Topics, ProdOpts) ->
     lists:foldl(
       fun(Topic, Acc) ->
           case Acc of
               ok ->
-                  case brod:start_producer(ClientRef, Topic, ProdOpts) of
+                  case start_producer(ClientRef, Topic, ProdOpts, 3, 5) of
                       ok -> ok;
                       {error, {already_started, _}} -> ok;
                       {error, Reason} -> {error, {Topic, Reason}}
@@ -396,3 +438,4 @@ ensure_headers_map(_) -> #{}.
 %% Extract the unique Kafka topics from the compiled mappings
 unique_kafka_topics(Mappings) ->
     lists:usort([ensure_binary(KTopic) || {_MP, KTopic, _Hdrs} <- Mappings]).
+
