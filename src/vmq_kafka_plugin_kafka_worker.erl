@@ -265,18 +265,17 @@ start_producer(_ClientRef, _Topic, _ProdOpts, 0, _Delay) ->
 start_producer(ClientRef, Topic, ProdOpts, Retries, Delay) ->
     case brod:start_producer(ClientRef, Topic, ProdOpts) of
         ok ->
-            io:format("Producer successfully started on topic ~p~n", [Topic]),
+            logger:info("Producer successfully started on topic ~p", [Topic]),
             ok;
-
         {error, unknown_topic_or_partition} ->
-            io:format("Topic ~p not yet available, retrying in ~p ms (remaining retries: ~p)~n",
+            logger:error("Topic ~p not yet available, retrying in ~p ms (remaining retries: ~p)",
                       [Topic, Delay, Retries]),
             timer:sleep(Delay),
             %% Exponential backoff: double the delay each retry
             start_producer(ClientRef, Topic, ProdOpts, Retries - 1, Delay * 2);
 
         {error, Reason} ->
-            io:format("Unhandled error while starting producer: ~p~n", [Reason]),
+            logger:error("Unhandled error while starting producer: ~p", [Reason]),
             {error, Reason}
     end.
 
@@ -286,7 +285,7 @@ ensure_topic_producers(ClientRef, Topics, ProdOpts) ->
       fun(Topic, Acc) ->
           case Acc of
               ok ->
-                  case start_producer(ClientRef, Topic, ProdOpts, 3, 5000) of
+                  case start_producer(ClientRef, Topic, ProdOpts, 5, 1000) of
                       ok -> ok;
                       {error, {already_started, _}} -> ok;
                       {error, Reason} -> {error, {Topic, Reason}}
