@@ -264,9 +264,9 @@ start_producer(_ClientRef, _Topic, _ProdOpts, 0, _Delay) ->
 
 start_producer(ClientRef, Topic, ProdOpts, Retries, Delay) ->
     case brod:start_producer(ClientRef, Topic, ProdOpts) of
-        {ok, Pid} ->
+        {ok} ->
             io:format("Producer successfully started on topic ~p~n", [Topic]),
-            {ok, Pid};
+            {ok};
 
         {error, unknown_topic_or_partition} ->
             io:format("Topic ~p not yet available, retrying in ~p ms (remaining retries: ~p)~n",
