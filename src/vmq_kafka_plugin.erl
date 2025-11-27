@@ -22,12 +22,12 @@
 
 %% Declare that this module implements the on_publish_hook behaviour
 -behaviour(on_publish_hook).
+-behaviour(on_publish_m5_hook).
 
 %% Export the on_publish/6 callback so VerneMQ can call it
--export([on_publish/6]).
-
-%% Export the on_publish/6 callback so VerneMQ can call it
--export([on_publish_m5/7]).
+-export([on_publish/6,
+        on_publish_m5/7
+    ]).
 
 %%--------------------------------------------------------------------
 %% on_publish/6
