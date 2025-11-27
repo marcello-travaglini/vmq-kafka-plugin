@@ -67,7 +67,8 @@
         %% Here: call vmq_kafka_plugin:on_publish/6 for every publish event.
         {vmq_plugin_hooks,
          [
-           {vmq_kafka_plugin, on_publish, 6, []}
+           {vmq_kafka_plugin, on_publish, 6, []},
+		   {vmq_kafka_plugin, on_publish_m5, 7, []}
          ]}
     ]},
 
